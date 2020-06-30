@@ -1,0 +1,128 @@
+#include "helpers.h"
+#include <math.h>
+
+// Convert image to grayscale
+void grayscale(int height, int width, RGBTRIPLE image[height][width])
+{
+    // iterate through pixels
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+
+            float red = image[i][j].rgbtRed;
+            float green = image[i][j].rgbtGreen;
+            float blue = image[i][j].rgbtBlue;
+
+            // for each pixel find the average of the color codes
+            int average = round((red + green + blue) / 3);
+
+            // change all codes to equal the average
+            image[i][j].rgbtRed = average;
+            image[i][j].rgbtGreen = average;
+            image[i][j].rgbtBlue = average;
+        }
+    }
+    return;
+}
+
+// Convert image to sepia
+void sepia(int height, int width, RGBTRIPLE image[height][width])
+{
+    // iterate through pixels
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+
+            int red = image[i][j].rgbtRed;
+            int green = image[i][j].rgbtGreen;
+            int blue = image[i][j].rgbtBlue;
+
+            // for each pixel adjust to "sepia-toned"
+            int sepiaRed = round(0.393 * red + 0.769 * green + 0.189 * blue);
+            int sepiaGreen = round(0.349 * red + 0.686 * green + 0.168 * blue);
+            int sepiaBlue = round(0.272 * red + 0.534 * green + 0.131 * blue);
+
+            // change all codes to equal the sepia if or 255 max
+            image[i][j].rgbtRed = (sepiaRed <= 255) ? sepiaRed : 255;
+            image[i][j].rgbtGreen = (sepiaGreen <= 255) ? sepiaGreen : 255;
+            image[i][j].rgbtBlue = (sepiaBlue <= 255) ? sepiaBlue : 255;
+
+        }
+    }
+    return;
+}
+
+// Reflect image horizontally
+void reflect(int height, int width, RGBTRIPLE image[height][width])
+{
+    // iterate through pixels
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width / 2; j++)
+        {
+
+            // swap each pixel with corresponding pixel in same row
+            RGBTRIPLE temp = image[i][j];
+            image[i][j] = image[i][width - 1 - j];
+            image[i][width - 1 - j] = temp;
+        }
+    }
+    return;
+}
+
+// Blur image
+void blur(int height, int width, RGBTRIPLE image[height][width])
+{
+    // create duplicate image to get blur values so you don't blur on top of blue
+    RGBTRIPLE duplicateImage[height][width];
+
+    // iterate through pixels for duplicate
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            duplicateImage[i][j] = image[i][j];
+        }
+    }
+
+    // iterate through pixels for blur
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+
+            int pixels = 0;
+
+            int allRed = 0;
+            int allGreen = 0;
+            int allBlue = 0;
+
+            //check pixels left and right of main pixel
+            for (int k = -1; k < 2; k++)
+            {
+
+                // check pixels above and below main pixel
+                for (int g = -1; g < 2; g++)
+                {
+                    if (i + k >= 0 && j + g >= 0 && i + k <= height - 1 && j + g <= width - 1)
+                    {
+                        allRed = duplicateImage[i + k][j + g].rgbtRed + allRed;
+                        allGreen = duplicateImage[i + k][j + g].rgbtGreen + allGreen;
+                        allBlue = duplicateImage[i + k][j + g].rgbtBlue + allBlue;
+
+                        // iterate how many pixels surround the one we're changing
+                        pixels++;
+                    }
+                }
+            }
+
+            image[i][j].rgbtRed = round(allRed / pixels);
+            image[i][j].rgbtGreen = round(allGreen / pixels);
+            image[i][j].rgbtBlue = round(allBlue / pixels);
+        }
+    }
+
+    return;
+}
