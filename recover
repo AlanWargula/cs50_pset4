@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
 
+
+#define BLOCKSIZE 512
+typedef uint8_t BYTE;
 
 int main(int argc, char *argv[])
 {
@@ -13,59 +18,65 @@ int main(int argc, char *argv[])
 
     // open memory card file
     FILE *file = fopen(argv[1], "r");
+
     if (!file)
     {
         printf("Usage: ./recover image\n");
         return 1;
     }
 
-    for (int i = 0; i <= 255; i++)
-    {
+
     // read file 512 bytes at a time
+    BYTE buffer[BLOCKSIZE];
+
+    // count number of images recoverd
     int jpgAmount = 0;
-    unsigned char *filename[7];
-    unsigned char buffer[64];
-    fread(buffer, 512, 1, file);
+
+    // jpeg name storage
+    char filename[8];
+
+    // pointer
+    FILE *openFile = NULL;
+
+    while (fread(buffer, sizeof(BYTE), BLOCKSIZE, file) == 1)
+    {
 
         //check first 4 bytes
-        if (buffer[0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && (buffer[3] & 0xf0) == 0xe0)
+        if (buffer[0] == 0xff &&
+            buffer[1] == 0xd8 &&
+            buffer[2] == 0xff &&
+            (buffer[3] & 0xf0) == 0xe0)
         {
 
-            if (jpgAmount == 0)
+            if(openFile != NULL)
             {
-                sprintf(filename, "%03i.jpg", jpgAmount);
-                FILE* newFile = fopen(filename, "w");
-                fwrite(buffer, 512, 1, newFile);
-                jpgAmount++
+            fclose(openFile);
             }
-            else
+
+            // name file
+            sprintf(filename, "%03i.jpg", jpgAmount);
+
+            // open file
+            openFile = fopen(filename, "w");
+
+            // interate number of files collected
+            jpgAmount ++;
+
+
+
+            if (openFile != NULL)
             {
-                fclose(filename);
-                sprintf(filename, "%03i.jpg", jpgAmount);
-                FILE* newFile = fopen(filename, "w");
-                fwrite(buffer, 512, 1, newFile);
-                jpgAmount++
+                // if not a new file, continue writing
+                fwrite(buffer, sizeof(buffer), 1, openFile);
             }
         }
-
-        if (jpgAmount != 0)
-        {
-            fwrite(buffer, 512, 1, newFile);
-        }
-
-
-
-
-
-            // scan for 'if' start of new jpg - fread(data, size, number, inptr)
-                // if first jpeg
-                    // open a new file to write to
-                    // filename: ###.jpg, starting with 000.jpg and iterate
-
-                // else
-                    // close last file and open new one to write to
-            // else
-                // if already found jpg keep writing in 512 blocks until done
-        // close any remaining files
     }
+
+    // close any remaining files
+    fclose(openFile);
+    fclose(file);
+
+
+    return 0;
+
 }
