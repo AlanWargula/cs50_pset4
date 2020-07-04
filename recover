@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
             (buffer[3] & 0xf0) == 0xe0)
         {
 
-            if(openFile != NULL)
+            if (openFile != NULL)
             {
                 fclose(openFile);
             }
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         if (openFile != NULL)
         {
             // if not a new file, continue writing
-            fwrite(openFile, BLOCKSIZE, 1, openFile);
+            fwrite(buffer, sizeof(buffer), 1, openFile);
         }
     }
 
