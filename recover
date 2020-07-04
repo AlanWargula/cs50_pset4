@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <stdint.h>
 
 
@@ -21,7 +20,7 @@ int main(int argc, char *argv[])
 
     if (!file)
     {
-        printf("Usage: ./recover image\n");
+        printf("Could not open file\n");
         return 1;
     }
 
@@ -38,7 +37,7 @@ int main(int argc, char *argv[])
     // pointer
     FILE *openFile = NULL;
 
-    while (fread(buffer, sizeof(BYTE), BLOCKSIZE, file) == 1)
+    while (fread(buffer, sizeof(BYTE), BLOCKSIZE, file) || feof(file) == 0)
     {
 
         //check first 4 bytes
@@ -50,7 +49,7 @@ int main(int argc, char *argv[])
 
             if(openFile != NULL)
             {
-            fclose(openFile);
+                fclose(openFile);
             }
 
             // name file
@@ -63,12 +62,12 @@ int main(int argc, char *argv[])
             jpgAmount ++;
 
 
+        }
 
-            if (openFile != NULL)
-            {
-                // if not a new file, continue writing
-                fwrite(buffer, sizeof(buffer), 1, openFile);
-            }
+        if (openFile != NULL)
+        {
+            // if not a new file, continue writing
+            fwrite(openFile, BLOCKSIZE, 1, openFile);
         }
     }
 
